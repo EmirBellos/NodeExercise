@@ -1,21 +1,52 @@
 // Módulos necesarios (crear servidro HTTP, manejar URLs, información del sitema)
-
+const http = require("http");
+const url = require("url");
+const os = require("os");
 
 // Estructura básica del servidor (1)
 const hostname = "127.0.0.1";
 const port = 3000;
 
 //Funciones (obtener info sistema, estadisticas de vistas, fecha y hora)
+const getSystemInfo = () => {
+  return {
+    platform: os.platform(),
+    hostname: os.hostname(),
+    cpus: os.cpus().length,
+    memory: Math.round(os.totalmem() / (1024 * 1024 * 1024)) + " GB",
+    uptime: Math.round(os.uptime() / 3600) + " horas",
+  };
+};
 
+// Función para obtener esstadisticas de visitas
+let visitCount = {
+  total: 0,
+  routes: {},
+};
+
+// Función para obtener fecha y hora
+const getDateTime = () => {
+  return new Date().toLocaleString("es-Es", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+};
 
 // Sistema de Rutas
 const routes = {
-    "/": () => `¡Bienvenido al servidor Node.js!<br>
-                Esta página ha sido visitada ${visitCount.routes["/"] || 0} veces`,
-    
-    "/info": () => {
-        const sysInfo = getSystemInfo();
-        return `
+  "/": () => `¡Bienvenido al servidor Node.js!<br>
+                Esta página ha sido visitada ${
+                  visitCount.routes["/"] || 0
+                } veces`,
+
+  "/info": () => {
+    const sysInfo = getSystemInfo();
+    return `
             <h2>Información del Sistema:</h2>
             <ul>
                 <li>Plataforma: ${sysInfo.platform}</li>
@@ -25,9 +56,9 @@ const routes = {
                 <li>Tiempo activo: ${sysInfo.uptime}</li>
             </ul>
         `;
-    },
+  },
 
-    "/hora": () => `
+  "/hora": () => `
         <h2>Fecha y Hora Actual:</h2>
         <div id="datetime">${getDateTime()}</div>
         <script>
@@ -39,28 +70,36 @@ const routes = {
         </script>
     `,
 
-    "/hora-actual": () => getDateTime(),
+  "/hora-actual": () => getDateTime(),
 
-    "/contador": () => `
+  "/contador": () => `
         <h2>Estadísticas de Visitas:</h2>
         <p>Visitas totales al servidor: ${visitCount.total}</p>
         <ul>
-            ${Object.entries(visitCount.routes).map(([route, count]) => 
-                `<li>Ruta ${route}: ${count} visitas</li>`
-            ).join('')}
+            ${Object.entries(visitCount.routes)
+              .map(
+                ([route, count]) => `<li>Ruta ${route}: ${count} visitas</li>`
+              )
+              .join("")}
         </ul>
-    `
+    `,
 };
 
 // Estructura básica del servidor (2)
 const server = http.createServer((req, res) => {
-    //Manejo de solisitudes
+  //Manejo de solisitudes
+  const parsedUrl = url.parse(req.url);
+  const path = parsedUrl.pathname;
 
-    // Configurar headers
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
+  // Incrementa contadores de vistas
+  visitCount.total++;
+  visitCount.routes[path] = (visitCount.routes[path] || 0) + 1;
+  
+  // Configurar headers
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
 
-    // Estilo común para todas las páginas
-    const commonStyle = `
+  // Estilo común para todas las páginas
+  const commonStyle = `
         <style>
             body { 
                 font-family: Arial, sans-serif; 
@@ -91,13 +130,13 @@ const server = http.createServer((req, res) => {
         </style>
     `;
 
-    // Manejo de errores
-    if (routes[path]) {
-        res.statusCode = 200;
-        if (path === '/hora-actual') {
-            res.end(routes[path]());
-        } else {
-            res.end(`
+  // Manejo de errores
+  if (routes[path]) {
+    res.statusCode = 200;
+    if (path === "/hora-actual") {
+      res.end(routes[path]());
+    } else {
+      res.end(`
                 <html>
                     <head>
                         <title>Servidor Node.js</title>
@@ -114,10 +153,10 @@ const server = http.createServer((req, res) => {
                     </body>
                 </html>
             `);
-        }
-    } else {
-        res.statusCode = 404;
-        res.end(`
+    }
+  } else {
+    res.statusCode = 404;
+    res.end(`
             <html>
                 <head>
                     <title>404 - No encontrado</title>
@@ -130,10 +169,10 @@ const server = http.createServer((req, res) => {
                 </body>
             </html>
         `);
-    }
+  }
 });
 
 // Estructura básica del servidor (3)
 server.listen(port, hostname, () => {
-    console.log(`Servidor corriendo en http://${hostname}:${port}/`);
+  console.log(`Servidor corriendo en http://${hostname}:${port}/`);
 });
