@@ -1,7 +1,5 @@
 // Módulos necesarios (crear servidro HTTP, manejar URLs, información del sitema)
-const http = require("http");
-const url = require("url");
-const os = require("os"); 
+
 
 // Estructura básica del servidor (1)
 const hostname = "127.0.0.1";
