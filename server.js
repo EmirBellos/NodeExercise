@@ -7,35 +7,8 @@ const os = require("os");
 const hostname = "127.0.0.1";
 const port = 3000;
 
-// Función para obtener información del sistema
-const getSystemInfo = () => {
-    return {
-        platform: os.platform(),
-        hostname: os.hostname(),
-        cpus: os.cpus().length,
-        memory: Math.round(os.totalmem() / (1024 * 1024 * 1024)) + ' GB',
-        uptime: Math.round(os.uptime() / 3600) + ' horas'
-    };
-};
+//Funciones (obtener info sistema, estadisticas de vistas, fecha y hora)
 
-// Función para obtener estadísticas de visitas
-let visitCount = {
-    total: 0,
-    routes: {}
-};
-
-// Función para obtener fecha y hora en español
-const getDateTime = () => {
-    return new Date().toLocaleString('es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-};
 
 // Sistema de Rutas
 const routes = {
@@ -83,12 +56,7 @@ const routes = {
 
 // Estructura básica del servidor (2)
 const server = http.createServer((req, res) => {
-    const parsedUrl = url.parse(req.url);
-    const path = parsedUrl.pathname;
-
-    // Incrementar contadores de visitas
-    visitCount.total++;
-    visitCount.routes[path] = (visitCount.routes[path] || 0) + 1;
+    //Manejo de solisitudes
 
     // Configurar headers
     res.setHeader("Content-Type", "text/html; charset=utf-8");
